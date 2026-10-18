@@ -1,0 +1,218 @@
+/* FloatingMenu — tokens are scoped to the component so it drops into any app.
+   Override any --fm-* variable on .fmenu (or an ancestor) to theme it. */
+
+.fmenu {
+  --fm-background: oklch(1 0 0);
+  --fm-foreground: oklch(0% 0 0);
+  --fm-primary: oklch(0% 0 0);
+  --fm-primary-foreground: oklch(0.985 0 0);
+  --fm-accent: oklch(0.97 0 0);
+  --fm-accent-foreground: oklch(0.205 0 0);
+  --fm-muted: oklch(0.97 0 0);
+  --fm-border: oklch(0.922 0 0);
+  --fm-ring: oklch(0.708 0 0);
+  --fm-brand: rgb(255, 61, 9);
+  --fm-radius: 0.5rem;
+  --fm-sticky-top: 104px;
+  --fm-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  width: 32px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+  font-family: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  color: var(--fm-foreground);
+}
+
+.dark .fmenu,
+.fmenu.dark {
+  --fm-background: oklch(0.145 0 0);
+  --fm-foreground: oklch(0.985 0 0);
+  --fm-primary: oklch(0.922 0 0);
+  --fm-primary-foreground: oklch(0.205 0 0);
+  --fm-accent: oklch(0.371 0 0);
+  --fm-accent-foreground: oklch(0.985 0 0);
+  --fm-muted: oklch(0.269 0 0);
+  --fm-border: oklch(1 0 0 / 10%);
+  --fm-ring: oklch(0.556 0 0);
+}
+
+.fm-stick {
+  position: sticky;
+  top: var(--fm-sticky-top);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 15;
+}
+
+.fm-grp {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fm-separator {
+  flex-shrink: 0;
+  height: 1px;
+  width: 100%;
+  background: var(--fm-border);
+}
+
+/* ── Collapsible body: animates grid rows 1fr ↔ 0fr ─────────────────────── */
+
+.fm-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  margin-top: 0;
+  transition:
+    grid-template-rows 0.3s var(--fm-ease),
+    opacity 0.25s ease,
+    margin-top 0.3s var(--fm-ease);
+}
+.fm-body[data-open="false"] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  margin-top: -12px;
+  pointer-events: none;
+}
+.fm-inner {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* Once expanded, let tooltips escape the clipping box */
+.fm-body[data-open="true"] .fm-inner {
+  animation: fm-vis 0s 0.3s forwards;
+}
+@keyframes fm-vis {
+  to { overflow: visible; }
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+
+.fm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--fm-radius);
+  background: transparent;
+  color: var(--fm-foreground);
+  cursor: pointer;
+  outline: none;
+  font: inherit;
+  transition: background-color 0.15s, color 0.15s;
+}
+.fm-btn svg {
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+.fm-btn[data-variant="ghost"]:hover {
+  background: var(--fm-accent);
+  color: var(--fm-accent-foreground);
+}
+.fm-btn[data-variant="ghost"]:active {
+  background: var(--fm-muted);
+  color: var(--fm-foreground);
+}
+.fm-btn:focus-visible {
+  outline: 2px solid var(--fm-ring);
+  outline-offset: 1px;
+}
+.fm-btn[data-variant="default"] {
+  background: var(--fm-primary);
+  color: var(--fm-primary-foreground);
+}
+.fm-btn[data-variant="default"]:hover {
+  background: color-mix(in oklab, var(--fm-primary) 90%, transparent);
+}
+
+/* Chevron flips when open */
+.fm-toggle svg {
+  transition: transform 0.6s var(--fm-ease);
+  transform: rotate(0deg);
+}
+.fm-toggle[data-open="true"] svg {
+  transform: rotate(180deg);
+}
+
+/* Like — filled brand-orange when on */
+.fm-like[data-on="true"],
+.fm-like[data-on="true"]:hover {
+  color: var(--fm-brand);
+}
+.fm-like[data-on="true"] svg {
+  fill: var(--fm-brand);
+  stroke: var(--fm-brand);
+}
+.fm-like[data-on="true"] svg path:last-child {
+  stroke: var(--fm-background);
+  stroke-width: 1.5;
+  stroke-linecap: butt;
+}
+
+/* ── Tooltip ─────────────────────────────────────────────────────────────── */
+
+.fm-tooltip-anchor {
+  position: relative;
+  display: inline-flex;
+}
+.fm-tooltip {
+  position: absolute;
+  z-index: 50;
+  width: max-content;
+  max-width: 20rem;
+  border-radius: var(--fm-radius);
+  background: var(--fm-foreground);
+  color: var(--fm-background);
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  pointer-events: none;
+  animation: fm-zoom-in 0.15s cubic-bezier(0, 0, 0.2, 1);
+}
+.fm-tooltip::after {
+  content: "";
+  position: absolute;
+  width: 0.625rem;
+  height: 0.625rem;
+  background: var(--fm-foreground);
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+.fm-tooltip[data-side="right"] {
+  left: calc(100% + 6px);
+  top: 50%;
+  translate: 0 -50%;
+}
+.fm-tooltip[data-side="right"]::after {
+  top: calc(50% - 0.3125rem);
+  left: -0.25rem;
+}
+@keyframes fm-zoom-in {
+  from { opacity: 0; transform: scale(0.95); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fm-body,
+  .fm-toggle svg,
+  .fm-tooltip {
+    transition: none;
+    animation: none;
+  }
+  .fm-body[data-open="true"] .fm-inner {
+    overflow: visible;
+  }
+}
